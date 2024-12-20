@@ -7,7 +7,7 @@ def missing_values_table(df):
     # Total missing values
     mis_val = df.isnull().sum()
 
-    # Percentage of missing values
+    # calculate percent  of missing values in each col
     mis_val_percent = 100 * df.isnull().sum() / len(df)
 
     # dtype of missing values
