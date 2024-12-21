@@ -33,21 +33,11 @@ def missing_values_table(df):
     # Return the dataframe with missing information
     return mis_val_table_ren_columns
 
+def convert_bytes_to_megabytes(x):
+    return x / (1024 ** 2)
 
-# def format_float(value):
-#     return f'{value:,.2f}'
-
-
-# def find_agg(df: pd.DataFrame, agg_column: str, agg_metric: str, col_name: str, top: int, order=False) -> pd.DataFrame:
-#     new_df = df.groupby(agg_column)[agg_column].agg(agg_metric).reset_index(name=col_name). \
-#         sort_values(by=col_name, ascending=order)[:top]
-#     return new_df
-
-
-def convert_bytes_to_megabytes(df, bytes_data):
-    megabyte = 1 * 10e+5
-    df[bytes_data] = df[bytes_data] / megabyte
-    return df[bytes_data]
+def convert_ms_to_seconds(ms):
+    return ms / 1000
 
 
 def fix_outlier(df, column):
