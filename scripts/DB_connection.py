@@ -7,12 +7,12 @@ import os
 load_dotenv()
 
 class PostgresConnection:
-    def __init__(self):
-        self.dbname = os.getenv('DB_DATABASE')
-        self.user = os.getenv('DB_USER')
-        self.password = os.getenv('DB_PASSWORD')
-        self.host = os.getenv('DB_HOST')
-        self.port = os.getenv('DB_PORT')
+    def __init__(self, dbname=None, user=None, password=None, host=None, port=None):
+        self.dbname = dbname or os.getenv('DB_DATABASE')
+        self.user = user or os.getenv('DB_USER')
+        self.password = password or os.getenv('DB_PASSWORD')
+        self.host = host or os.getenv('DB_HOST')
+        self.port = port or os.getenv('DB_PORT')
         self.conn = None
         self.cursor = None
 
@@ -48,24 +48,3 @@ class PostgresConnection:
             self.cursor.close()
             self.conn.close()
             print("Connection closed.")
-
-# Establishing the database connection
-db = PostgresConnection()
-db.connect()
-
-if db.conn:
-    # Example query
-    query = "SELECT * FROM xdr_data"
-    result = db.execute_query(query)
-
-    if result:
-        # Convert the result to a Pandas DataFrame
-        df = pd.DataFrame(result, columns=[desc[0] for desc in db.cursor.description])
-        print(df.head())  # Display the first few rows of the DataFrame
-    else:
-        print("No results returned from the query.")
-    
-    # Close the connection when done
-    db.close_connection()
-else:
-    print("Error: No database connection.")
