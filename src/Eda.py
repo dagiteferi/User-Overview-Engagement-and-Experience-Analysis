@@ -39,19 +39,78 @@ def convert_bytes_to_megabytes(x):
 def convert_ms_to_seconds(ms):
     return ms / 1000
 
+# Function to handle missing values using advanced statistical methods
+def handle_missing_values(df):
+    df_filled = df.copy()  # Create a copy of the DataFrame for modifications
+    
+    for column in df_filled.columns:
+        # If the column is numeric (float or int), replace missing values with the median
+        if df_filled[column].dtype in ['float64', 'int64']:
+            median_value = df_filled[column].median()
+            df_filled[column] = df_filled[column].fillna(median_value)
+        # If the column is categorical (object), replace missing values with the mode (most frequent value)
+        elif df_filled[column].dtype == 'object':
+            mode_value = df_filled[column].mode()[0]
+            df_filled[column] = df_filled[column].fillna(mode_value)
+    
+    return df_filled
 
-def fix_outlier(df, column):
-    df[column] = np.where(df[column] > df[column].quantile(0.95), df[column].median(), df[column])
-    return df[column]
+# Function to handle outliers using the IQR method
+def remove_outliers_iqr(df):
+    df_cleaned = df.copy()  # Create a copy of the DataFrame for modifications
+    outlier_info = {}  # Dictionary to store information about outliers
+    
+    for column in df_cleaned.select_dtypes(include=['float64', 'int64']).columns:
+        # Calculate Q1 (25th percentile) and Q3 (75th percentile)
+        Q1 = df_cleaned[column].quantile(0.25)
+        Q3 = df_cleaned[column].quantile(0.75)
+        IQR = Q3 - Q1
+        
+        # Define outlier bounds
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        
+        # Identify outliers
+        outliers = df_cleaned[(df_cleaned[column] < lower_bound) | (df_cleaned[column] > upper_bound)]
+        
+        # Store the count of outliers
+        outlier_info[column] = outliers.shape[0]
+        
+        # Replace outliers with median of the column
+        median_value = df_cleaned[column].median()
+        df_cleaned.loc[(df_cleaned[column] < lower_bound) | (df_cleaned[column] > upper_bound), column] = median_value
+    
+    return df_cleaned, outlier_info
 
-def remove_outliers(df, column_to_process, z_threshold=3):
-    # Apply outlier removal to the specified column
-    z_scores = zscore(df[column_to_process])
-    outlier_column = column_to_process + '_Outlier'
-    df[outlier_column] = (np.abs(z_scores) > z_threshold).astype(int)
-    df = df[df[outlier_column] == 0]  # Keep rows without outliers
 
-    # Drop the outlier column as it's no longer needed
-    df = df.drop(columns=[outlier_column], errors='ignore')
 
-    return df
+# Function to remove duplicates and ensure data consistency
+def remove_duplicates(df):
+    # Remove duplicate entries
+    df_cleaned = df.drop_duplicates().reset_index(drop=True)
+    
+    # Convert data types to appropriate types
+    for column in df_cleaned.columns:
+        # If the column contains numeric data but is stored as an object, convert it to numeric
+        if df_cleaned[column].dtype == 'object':
+            try:
+                df_cleaned[column] = pd.to_numeric(df_cleaned[column])
+            except ValueError:
+                # If conversion fails, it's likely a categorical column, so leave it as is
+                pass
+        
+        # Convert datetime-like strings to actual datetime objects with a specific format if possible
+        if df_cleaned[column].dtype == 'object':
+            sample_value = df_cleaned[column].dropna().iloc[0]  # Take a sample value from the column
+            try:
+                # Check if the sample value looks like a date and if so, convert the entire column
+                if isinstance(pd.to_datetime(sample_value, format='%Y-%m-%d', errors='raise'), pd.Timestamp):
+                    df_cleaned[column] = pd.to_datetime(df_cleaned[column], format='%Y-%m-%d', errors='coerce')
+                elif isinstance(pd.to_datetime(sample_value, format='%d/%m/%Y', errors='raise'), pd.Timestamp):
+                    df_cleaned[column] = pd.to_datetime(df_cleaned[column], format='%d/%m/%Y', errors='coerce')
+                # Add other date formats as needed
+            except (ValueError, TypeError):
+                # If conversion fails, leave the column as is
+                pass
+    
+    return df_cleaned
