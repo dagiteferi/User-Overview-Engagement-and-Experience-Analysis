@@ -51,10 +51,12 @@ def preprocess_engagement_data(df):
     df_user_engagement.dropna(subset=['MSISDN/Number'], inplace=True)
     
     # Replace missing values with mean
-    mean_rtt_dl = df_user_engagement['Avg RTT DL (ms)'].mean()
-    mean_rtt_ul = df_user_engagement['Avg RTT UL (ms)'].mean()
-    df_user_engagement['Avg RTT DL (ms)'].fillna(mean_rtt_dl, inplace=True)
-    df_user_engagement['Avg RTT UL (ms)'].fillna(mean_rtt_ul, inplace=True)
+    if 'Avg RTT DL (ms)' in df_user_engagement.columns:
+        mean_rtt_dl = df_user_engagement['Avg RTT DL (ms)'].mean()
+        df_user_engagement['Avg RTT DL (ms)'].fillna(mean_rtt_dl, inplace=True)
+    if 'Avg RTT UL (ms)' in df_user_engagement.columns:
+        mean_rtt_ul = df_user_engagement['Avg RTT UL (ms)'].mean()
+        df_user_engagement['Avg RTT UL (ms)'].fillna(mean_rtt_ul, inplace=True)
 
     # Convert bytes to megabytes
     byte_columns = [
@@ -88,18 +90,6 @@ def preprocess_engagement_data(df):
     df_user_engagement.rename(columns=lambda x: x.replace('(ms)', '(s)') if '(ms)' in x else x, inplace=True)
     
     return df_user_engagement
-
-
-def group_data(df_user_engagement):
-    grouped_df = df_user_engagement.groupby('MSISDN/Number').agg({
-        'Dur. (s)': 'sum',
-        'Total DL (Megabytes)': 'sum',
-        'Total UL (Megabytes)': 'sum',
-        'Activity Duration DL (s)': 'sum',
-        'Activity Duration UL (s)': 'sum'
-    }).reset_index()
-    grouped_df['Total Traffic (Megabytes)'] = grouped_df['Total DL (Megabytes)'] + grouped_df['Total UL (Megabytes)']
-    return grouped_df
 
 def report_top_customers(df_user_engagement):
     grouped_df = group_data(df_user_engagement)
