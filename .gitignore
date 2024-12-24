@@ -2,3 +2,4 @@ Data/
 week-2/
 .env
 __pycache__
+centroid_engagement.csv

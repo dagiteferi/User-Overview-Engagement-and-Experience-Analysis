@@ -3,11 +3,12 @@ import numpy as np #for numerical operations
 import scipy.stats  #for statistical operations
 from scipy.stats import zscore #for z-score calculation
 
+
 def missing_values_table(df):
     # Total missing values
     mis_val = df.isnull().sum()
 
-    # calculate percent  of missing values in each col
+    # calculate percent of missing values in each col
     mis_val_percent = 100 * df.isnull().sum() / len(df)
 
     # dtype of missing values
@@ -39,7 +40,7 @@ def convert_bytes_to_megabytes(x):
 def convert_ms_to_seconds(ms):
     return ms / 1000
 
-# Function to handle missing values using advanced statistical methods
+
 def handle_missing_values(df):
     df_filled = df.copy()  # Create a copy of the DataFrame for modifications
     
@@ -55,8 +56,7 @@ def handle_missing_values(df):
     
     return df_filled
 
-# Function to handle outliers using the IQR method
-def remove_outliers_iqr(df):
+def handle_outliers_iqr(df):
     df_cleaned = df.copy()  # Create a copy of the DataFrame for modifications
     outlier_info = {}  # Dictionary to store information about outliers
     
@@ -82,9 +82,6 @@ def remove_outliers_iqr(df):
     
     return df_cleaned, outlier_info
 
-
-
-# Function to remove duplicates and ensure data consistency
 def remove_duplicates(df):
     # Remove duplicate entries
     df_cleaned = df.drop_duplicates().reset_index(drop=True)
@@ -114,3 +111,29 @@ def remove_duplicates(df):
                 pass
     
     return df_cleaned
+
+def display_dataset_characteristics(df):
+    print("### Dataset Characteristics ###\n")
+    
+    # Display the shape of the dataset
+    print(f"Shape of the DataFrame: {df.shape}")
+    
+    # Display the column data types
+    print("\nData Types of Each Column:")
+    print(df.dtypes)
+    
+    # Display summary statistics for numeric columns
+    print("\nSummary Statistics for Numeric Columns:")
+    print(df.describe())
+    
+    # Display the count of missing values per column
+    print("\nCount of Missing Values per Column:")
+    print(df.isnull().sum())
+    
+    # Display the count of unique values per column
+    print("\nCount of Unique Values per Column:")
+    print(df.nunique())
+    
+    # Display the first few rows of the cleaned dataset
+    print("\nFirst Few Rows of the DataFrame:")
+    print(df.head())
