@@ -23,14 +23,13 @@ def load_data():
     else:
         st.error("Error: No database connection.")
         return pd.DataFrame()
-
 def preprocess_engagement_data(df):
     user_engagement_columns = [
         'IMSI', 'MSISDN/Number',
         'Dur. (ms)', 'Activity Duration DL (ms)', 'Activity Duration UL (ms)',
         'Total DL (Bytes)', 'Total UL (Bytes)',
         'Social Media DL (Bytes)', 'Social Media UL (Bytes)',
-        'YouTube DL (Bytes)', 'YouTube UL (Bytes)',
+        'Youtube DL (Bytes)', 'Youtube UL (Bytes)',
         'Netflix DL (Bytes)', 'Netflix UL (Bytes)',
         'Google DL (Bytes)', 'Google UL (Bytes)',
         'Email DL (Bytes)', 'Email UL (Bytes)',
@@ -39,7 +38,14 @@ def preprocess_engagement_data(df):
         'Avg RTT DL (ms)', 'Avg RTT UL (ms)',
         'Avg Bearer TP DL (kbps)', 'Avg Bearer TP UL (kbps)'
     ]
-    df_user_engagement = df[user_engagement_columns].copy()
+
+    # Check if the required columns exist in the DataFrame
+    available_columns = [col for col in user_engagement_columns if col in df.columns]
+    if len(available_columns) < len(user_engagement_columns):
+        missing_columns = set(user_engagement_columns) - set(available_columns)
+        st.warning(f"Warning: The following columns are missing from the data: {missing_columns}")
+
+    df_user_engagement = df[available_columns].copy()
 
     # Clean the data
     df_user_engagement.dropna(subset=['MSISDN/Number'], inplace=True)
@@ -54,7 +60,7 @@ def preprocess_engagement_data(df):
     byte_columns = [
         'Total DL (Bytes)', 'Total UL (Bytes)',
         'Social Media DL (Bytes)', 'Social Media UL (Bytes)',
-        'YouTube DL (Bytes)', 'YouTube UL (Bytes)',
+        'Youtube DL (Bytes)', 'Youtube UL (Bytes)',
         'Netflix DL (Bytes)', 'Netflix UL (Bytes)',
         'Google DL (Bytes)', 'Google UL (Bytes)',
         'Email DL (Bytes)', 'Email UL (Bytes)',
@@ -82,6 +88,7 @@ def preprocess_engagement_data(df):
     df_user_engagement.rename(columns=lambda x: x.replace('(ms)', '(s)') if '(ms)' in x else x, inplace=True)
     
     return df_user_engagement
+
 
 def group_data(df_user_engagement):
     grouped_df = df_user_engagement.groupby('MSISDN/Number').agg({
